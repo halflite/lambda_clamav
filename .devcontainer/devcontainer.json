@@ -1,0 +1,15 @@
+{
+	"name": "clamavscan",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+  "extensions": [
+    "redhat.java",
+    "redhat.vscode-xml",
+    "redhat.vscode-yaml",
+    "visualstudioexptteam.vscodeintellicode",
+    "ms-ceintl.vscode-language-pack-ja",
+    "ms-azuretools.vscode-docker",
+    "mhutchie.git-graph"
+  ]
+}
