@@ -24,7 +24,7 @@ public class App implements RequestHandler<S3Event, Void> {
       LOG.info("completed.");
       return null;
     } catch (Exception e) {
-      LOG.info("error.", e);
+      LOG.info("error.");
       // TODO 何か失敗キューを送る
       return null;
     }

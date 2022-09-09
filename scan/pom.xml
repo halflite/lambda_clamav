@@ -3,7 +3,7 @@
   <groupId>net.halflite</groupId>
   <artifactId>scan</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>0.0.1-SNAPSHOT</version>
   <name>scan</name>
   <url>http://maven.apache.org</url>
   <properties>
