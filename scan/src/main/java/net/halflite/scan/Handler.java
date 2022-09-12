@@ -24,8 +24,9 @@ public class Handler implements RequestHandler<S3Event, Void> {
       LOG.info("completed.");
       return null;
     } catch (Exception e) {
-      LOG.warn("error.", e);
+      LOG.warn("error.");
       // TODO 何か失敗キューを送る
+      // TODO ClamAVの時と、IOException系の例外を分ける
       return null;
     }
   }

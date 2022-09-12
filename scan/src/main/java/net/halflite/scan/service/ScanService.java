@@ -1,12 +1,15 @@
 package net.halflite.scan.service;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.amazonaws.services.lambda.runtime.events.S3Event;
@@ -16,8 +19,6 @@ import com.amazonaws.services.lambda.runtime.events.models.s3.S3EventNotificatio
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
-import xyz.capybara.clamav.ClamavClient;
-import xyz.capybara.clamav.commands.scan.result.ScanResult;
 
 @Singleton
 public class ScanService {
@@ -27,7 +28,6 @@ public class ScanService {
   private static final String EXT_TYPE = "ZIP";
 
   private final AmazonS3 s3Client;
-  private final ClamavClient clamavClient;
   private final String sourceBucket;
 
   public void execute(S3Event input) {
@@ -45,7 +45,7 @@ public class ScanService {
     String sourceKey = s3.getObject().getUrlDecodedKey();
     LOG.info("source key: {}", sourceKey);
     Optional.of(sourceKey)
-        .map(FilenameUtils::getExtension)
+        .map(com.google.common.io.Files::getFileExtension)
         .filter(EXT_TYPE::equalsIgnoreCase)
         .orElseThrow(() -> new RuntimeException("unknown extention."));
 
@@ -53,25 +53,40 @@ public class ScanService {
   }
 
   protected void scan(String sourceKey) {
-    GetObjectRequest req = new GetObjectRequest(this.sourceBucket, sourceKey);
-    S3Object s3Object = this.s3Client.getObject(req);
-    try (InputStream in = s3Object.getObjectContent()) {
-      ScanResult scanResult = this.clamavClient.scan(in);
-      if (scanResult instanceof ScanResult.VirusFound) {
-        throw new RuntimeException(String.format("Caution: %s", sourceKey));
+    try {
+      GetObjectRequest req = new GetObjectRequest(this.sourceBucket, sourceKey);
+      S3Object s3Object = this.s3Client.getObject(req);
+      final Path tempFile = Files.createTempFile(null, ".zip");
+      try (Closeable closable = () -> Files.deleteIfExists(tempFile);
+          InputStream in = s3Object.getObjectContent()) {
+        Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
+        
+        int scanResult = this.executeClamScan(tempFile);
+        if (scanResult != 0) {
+          throw new RuntimeException(String.format("Caution: %s", sourceKey));
+        }
       }
-    } catch (IOException e) {
+    } catch (IOException | InterruptedException e) {
       LOG.warn("error", e);
-      throw new RuntimeException(e);
+      throw new RuntimeException(String.format("Caution: %s", sourceKey), e);
     }
+  }
+
+  protected int executeClamScan(Path tempFile) throws IOException, InterruptedException {
+    String filepath = tempFile.normalize().toAbsolutePath().toString();
+    LOG.info("clamscan　start, file path: {}", filepath);
+    ProcessBuilder pb = new ProcessBuilder("/usr/bin/clamscan", filepath);
+    Process process = pb.start();
+    int scanResult = process.waitFor();
+    LOG.info("clamscan result: {}", scanResult);
+    process.destroy();
+    return scanResult;
   }
 
   @Inject
   public ScanService(AmazonS3 s3Client,
-      ClamavClient clamavClient,
       @Named("source.bucket") String sourceBucket) {
     this.s3Client = s3Client;
-    this.clamavClient = clamavClient;
     this.sourceBucket = sourceBucket;
   }
 }

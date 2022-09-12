@@ -40,22 +40,11 @@
       <artifactId>geronimo-config-impl</artifactId>
       <version>1.2.3</version>
     </dependency>
-    <!-- ClamAV -->
-    <dependency>
-      <groupId>xyz.capybara</groupId>
-      <artifactId>clamav-client</artifactId>
-      <version>2.1.2</version>
-    </dependency>
     <!-- Utils -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>30.1-jre</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.11.0</version>
     </dependency>
     <!-- AWS -->
     <dependency>

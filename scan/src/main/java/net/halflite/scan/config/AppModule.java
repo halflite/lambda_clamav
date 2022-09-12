@@ -8,7 +8,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import dagger.Module;
 import dagger.Provides;
-import xyz.capybara.clamav.ClamavClient;
 
 @Module
 public class AppModule {
@@ -31,13 +30,4 @@ public class AppModule {
   public AmazonS3 providesAmazonS3Client() {
     return AmazonS3ClientBuilder.defaultClient();
   }
-
-  @Provides
-  @Singleton
-  public ClamavClient providesClamAvClient(Config config) {
-    String host = config.getValue("clamav.host", String.class);
-    Integer port = config.getValue("clamav.port", Integer.class);
-    return new ClamavClient(host, port);
-  }
-
 }
