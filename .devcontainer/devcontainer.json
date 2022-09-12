@@ -1,8 +1,8 @@
 {
-	"name": "clamavscan",
-	"build": {
-		"dockerfile": "Dockerfile"
-	},
+  "name": "clamavscan",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
   "extensions": [
     "redhat.java",
     "redhat.vscode-xml",
