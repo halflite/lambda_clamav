@@ -9,9 +9,9 @@ import net.halflite.scan.config.AppComponent;
 import net.halflite.scan.config.DaggerAppComponent;
 import net.halflite.scan.service.ScanService;
 
-public class App implements RequestHandler<S3Event, Void> {
+public class Handler implements RequestHandler<S3Event, Void> {
   /** logger */
-  private static final Logger LOG = LoggerFactory.getLogger(App.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Handler.class);
   
   private final ScanService scanService;
   
@@ -24,13 +24,13 @@ public class App implements RequestHandler<S3Event, Void> {
       LOG.info("completed.");
       return null;
     } catch (Exception e) {
-      LOG.info("error.");
+      LOG.warn("error.", e);
       // TODO 何か失敗キューを送る
       return null;
     }
   }
 
-  public App() {
+  public Handler() {
     AppComponent appComponent = DaggerAppComponent.create();
     this.scanService = appComponent.scanService();
   }

@@ -7,7 +7,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.amazonaws.services.lambda.runtime.events.S3Event;
@@ -17,7 +16,8 @@ import com.amazonaws.services.lambda.runtime.events.models.s3.S3EventNotificatio
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
-import fi.solita.clamav.ClamAVClient;
+import xyz.capybara.clamav.ClamavClient;
+import xyz.capybara.clamav.commands.scan.result.ScanResult;
 
 @Singleton
 public class ScanService {
@@ -27,7 +27,7 @@ public class ScanService {
   private static final String EXT_TYPE = "ZIP";
 
   private final AmazonS3 s3Client;
-  private final ClamAVClient clamAVClient;
+  private final ClamavClient clamavClient;
   private final String sourceBucket;
 
   public void execute(S3Event input) {
@@ -55,24 +55,23 @@ public class ScanService {
   protected void scan(String sourceKey) {
     GetObjectRequest req = new GetObjectRequest(this.sourceBucket, sourceKey);
     S3Object s3Object = this.s3Client.getObject(req);
-    try(InputStream in = s3Object.getObjectContent()) {
-      byte[] bytes = IOUtils.toByteArray(in);
-      if (!ClamAVClient.isCleanReply(this.clamAVClient.scan(bytes)))
-      {
-          throw new RuntimeException(String.format("Caution: %s", sourceKey));
+    try (InputStream in = s3Object.getObjectContent()) {
+      ScanResult scanResult = this.clamavClient.scan(in);
+      if (scanResult instanceof ScanResult.VirusFound) {
+        throw new RuntimeException(String.format("Caution: %s", sourceKey));
       }
     } catch (IOException e) {
       LOG.warn("error", e);
       throw new RuntimeException(e);
     }
- }
+  }
 
   @Inject
   public ScanService(AmazonS3 s3Client,
-      ClamAVClient clamAVClient,
+      ClamavClient clamavClient,
       @Named("source.bucket") String sourceBucket) {
     this.s3Client = s3Client;
-    this.clamAVClient = clamAVClient;
+    this.clamavClient = clamavClient;
     this.sourceBucket = sourceBucket;
   }
 }

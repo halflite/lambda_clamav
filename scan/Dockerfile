@@ -13,9 +13,9 @@ RUN mvn -B package
 
 # Build image
 FROM public.ecr.aws/lambda/java:11 as deploy
-RUN yum -y install clamav clamd && \
-  freshclam
+RUN yum -y install clamav
+RUN freshclam
 WORKDIR ${LAMBDA_TASK_ROOT}
 COPY --from=build /root/target/scan.jar ./
 RUN jar -xvf scan.jar
-CMD [ "net.halflite.scan.App::handleRequest" ]
+CMD [ "net.halflite.scan.Handler::handleRequest" ]
