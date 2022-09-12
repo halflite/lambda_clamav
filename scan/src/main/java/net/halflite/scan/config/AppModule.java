@@ -9,6 +9,12 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import dagger.Module;
 import dagger.Provides;
 
+/** 
+ * DI設定
+ * 
+ * @author halflite
+ *
+ */
 @Module
 public class AppModule {
 

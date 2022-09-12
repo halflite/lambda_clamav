@@ -9,6 +9,12 @@ import net.halflite.scan.config.AppComponent;
 import net.halflite.scan.config.DaggerAppComponent;
 import net.halflite.scan.service.ScanService;
 
+/** 
+ * AWS Lambda Function Handler
+ * 
+ * @author halflite
+ *
+ */
 public class Handler implements RequestHandler<S3Event, Void> {
   /** logger */
   private static final Logger LOG = LoggerFactory.getLogger(Handler.class);
