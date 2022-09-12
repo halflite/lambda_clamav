@@ -16,6 +16,7 @@ aws configure
 Windows cmd
 
 ```cmd
+cd scan
 docker build -t lambda_clamav .
 docker build -t lambda_clamav:0.0.1 .
 ```
